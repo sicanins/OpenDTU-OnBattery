@@ -101,7 +101,11 @@ void WebApiWsVedirectLiveClass::generateJsonResponse(JsonVariant& root)
     JsonArray mpptArray = root.createNestedArray("mppts");
 
 // Loop all mppts
-    for (uint8_t i = 0; i < VICTRON_COUNT; i++) {        
+    for (uint8_t i = 0; i < VICTRON_COUNT; i++) {      
+
+        if (!VeDirectMppt[i].isInit())
+            continue;
+
         JsonObject mpptObject = mpptArray.createNestedObject();
     
         mpptObject["order"] = i;

@@ -10,11 +10,16 @@ VeDirectMpptController::VeDirectMpptController()
 void VeDirectMpptController::init(int8_t rx, int8_t tx, int8_t num, Print* msgOut, bool verboseLogging)
 {
 	VeDirectFrameHandler::init(rx, tx, msgOut, verboseLogging, 1+num);
+	_isInit = true;
 	if (_verboseLogging) { _msgOut->println("Finished init MPPTController"); }
 }
 
 bool VeDirectMpptController::isDataValid() {
 	return VeDirectFrameHandler::isDataValid(veFrame);
+}
+
+bool VeDirectMpptController::isInit() {
+	return _isInit;
 }
 
 void VeDirectMpptController::textRxEvent(char * name, char * value) {

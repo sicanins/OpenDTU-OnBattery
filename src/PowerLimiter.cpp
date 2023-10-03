@@ -366,11 +366,11 @@ void PowerLimiterClass::unconditionalSolarPassthrough(std::shared_ptr<InverterAb
 {
     CONFIG_T& config = Configuration.get();
 
-    bool dataValid = true;
+    bool dataValid = false;
     for (int8_t i = 0; i < VICTRON_COUNT; i++)
     {
-        if (!VeDirectMppt[i].isDataValid())
-            dataValid = false;
+        if (VeDirectMppt[i].isDataValid())
+            dataValid = true;
     }
     
     if (!config.Vedirect_Enabled || !dataValid) {
@@ -381,7 +381,8 @@ void PowerLimiterClass::unconditionalSolarPassthrough(std::shared_ptr<InverterAb
     int32_t solarPower = 0;    
     for (int8_t i = 0; i < VICTRON_COUNT; i++)
     {
-        solarPower += VeDirectMppt[i].veFrame.V * VeDirectMppt[i].veFrame.I;
+        if (VeDirectMppt[i].isInit() && VeDirectMppt[i].isDataValid())
+            solarPower += VeDirectMppt[i].veFrame.V * VeDirectMppt[i].veFrame.I;
     }
     setNewPowerLimit(inverter, inverterPowerDcToAc(inverter, solarPower));
 
@@ -598,7 +599,8 @@ int32_t PowerLimiterClass::getSolarChargePower()
     int32_t solarPower = 0;    
     for (int8_t i = 0; i < VICTRON_COUNT; i++)
     {
-        solarPower += VeDirectMppt[i].veFrame.V * VeDirectMppt[i].veFrame.I;
+        if (VeDirectMppt[i].isInit() && VeDirectMppt[i].isDataValid())
+            solarPower += VeDirectMppt[i].veFrame.V * VeDirectMppt[i].veFrame.I;
     }
 
     return solarPower;

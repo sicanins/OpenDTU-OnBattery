@@ -44,6 +44,7 @@ public:
     String getCsAsString(uint8_t cs);        // current state as string
     String getOrAsString(uint32_t offReason); // off reason as string
     bool isDataValid();                      // return true if data valid and not outdated
+    bool isInit();                           // return true if the mppt has valid pins and was initialized
 
     struct veMpptStruct : veStruct {
         uint8_t  MPPT;                  // state of MPP tracker
@@ -69,6 +70,7 @@ private:
     void frameEndEvent(bool) final;                  // copy temp struct to public struct
     veMpptStruct _tmpFrame{};                        // private struct for received name and value pairs
     MovingAverage<double, 5> _efficiency;
+    bool _isInit = false;
 };
 
 extern VeDirectMpptController VeDirectMppt[VICTRON_COUNT];
