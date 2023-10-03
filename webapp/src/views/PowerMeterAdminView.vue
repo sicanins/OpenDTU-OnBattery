@@ -103,6 +103,10 @@
                             v-model="powerMeterConfigList.http_individual_requests"
                             type="checkbox"
                             wide />
+                        <InputElement :label="$t('powermeteradmin.httpinterval')"
+                                v-model="powerMeterConfigList.interval"
+                                type="number"
+                                :postfix="$t('powermeteradmin.milliSeconds')" />
                     </CardElement>
 
                     <CardElement

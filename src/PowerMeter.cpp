@@ -141,7 +141,7 @@ void PowerMeterClass::loop()
     }
 
     if (!config.PowerMeter_Enabled
-            || (millis() - _lastPowerMeterCheck) < (config.PowerMeter_Interval * 1000)) {
+            || (millis() - _lastPowerMeterCheck) < (config.PowerMeter_Interval)) {
         return;
     }
 
