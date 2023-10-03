@@ -22,7 +22,9 @@ To change the device profile, navigate to the "Device Manager" and selected the 
         },
         "victron": {
             "rx": 22,
-            "tx": 21
+            "tx": 21,
+            "rx2": -1,
+            "tx2": -1
         },
         "battery": {
             "rx": 27,
@@ -127,6 +129,8 @@ The json file can contain multiple profiles. Each profile requires a name and di
 | display.reset | number    | Reset Pin required for PCD8544, optional for all other displays. Use 255 for not assigned pins. |
 | victron.rx    | number    | Victron Ve.direct Rx pin |
 | victron.tx    | number    | Victron Ve.direct Tx pin |
+| victron.rx2   | number    | Victron Ve.direct Rx pin of second device|
+| victron.tx2   | number    | Victron Ve.direct Tx pin of second device|
 | battery.rx    | number    | Pylontech CAN bus battery Rx pin |
 | battery.tx    | number    | Pylontech CAN bus battery Tx pin |
 | huawei.miso   | number    | MISO Pin for Huawei CAN bus interface |

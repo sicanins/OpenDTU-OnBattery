@@ -101,6 +101,9 @@ void VeDirectFrameHandler::dumpDebugBuffer() {
 
 void VeDirectFrameHandler::loop()
 {
+	if (_vedirectSerial == NULL)
+		return;
+
 	while ( _vedirectSerial->available()) {
 		rxData(_vedirectSerial->read());
 		_lastByteMillis = millis();

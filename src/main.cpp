@@ -171,7 +171,7 @@ void setup()
                     &MessageOutput, config.Vedirect_VerboseLogging);
             MessageOutput.println(F("done"));
         } else {
-            MessageOutput.println(F("Invalid pin config #%i", i));
+            MessageOutput.printf("Invalid pin config #%i\r\n", i);
         }    
     }    
     // Power meter
