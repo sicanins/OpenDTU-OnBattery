@@ -94,6 +94,14 @@
 #define VICTRON_PIN_RX -1
 #endif
 
+#ifndef VICTRON_PIN_TX2
+#define VICTRON_PIN_TX2 -1
+#endif
+
+#ifndef VICTRON_PIN_RX2
+#define VICTRON_PIN_RX2 -1
+#endif
+
 #ifndef BATTERY_PIN_RX
 #define BATTERY_PIN_RX -1
 #endif
@@ -182,8 +190,12 @@ PinMappingClass::PinMappingClass()
     _pinMapping.display_cs = DISPLAY_CS;
     _pinMapping.display_reset = DISPLAY_RESET;
    
-    _pinMapping.victron_tx = VICTRON_PIN_TX;
-    _pinMapping.victron_rx = VICTRON_PIN_RX;
+    _pinMapping.victron_tx[0] = VICTRON_PIN_TX;
+    _pinMapping.victron_rx[0] = VICTRON_PIN_RX;
+    #if VICTRON_COUNT > 1
+        _pinMapping.victron_tx[1] = VICTRON_PIN_TX2;
+        _pinMapping.victron_rx[1] = VICTRON_PIN_RX2;
+    #endif
 
     _pinMapping.battery_rx = BATTERY_PIN_RX;
     _pinMapping.battery_rxen = BATTERY_PIN_RXEN;
@@ -257,8 +269,12 @@ bool PinMappingClass::init(const String& deviceMapping)
             _pinMapping.display_cs = doc[i]["display"]["cs"] | DISPLAY_CS;
             _pinMapping.display_reset = doc[i]["display"]["reset"] | DISPLAY_RESET;
 
-            _pinMapping.victron_rx = doc[i]["victron"]["rx"] | VICTRON_PIN_RX;
-            _pinMapping.victron_tx = doc[i]["victron"]["tx"] | VICTRON_PIN_TX;
+            _pinMapping.victron_rx[0] = doc[i]["victron"]["rx"] | VICTRON_PIN_RX;
+            _pinMapping.victron_tx[0] = doc[i]["victron"]["tx"] | VICTRON_PIN_TX;
+            #if VICTRON_COUNT > 1
+                _pinMapping.victron_rx[1] = doc[i]["victron"]["rx2"] | VICTRON_PIN_RX2;
+                _pinMapping.victron_tx[1] = doc[i]["victron"]["tx2"] | VICTRON_PIN_TX2;
+            #endif
 
             _pinMapping.battery_rx = doc[i]["battery"]["rx"] | BATTERY_PIN_RX;
             _pinMapping.battery_rxen = doc[i]["battery"]["rxen"] | BATTERY_PIN_RXEN;
@@ -305,9 +321,9 @@ bool PinMappingClass::isValidEthConfig()
     return _pinMapping.eth_enabled;
 }
 
-bool PinMappingClass::isValidVictronConfig()
+bool PinMappingClass::isValidVictronConfig(uint8_t num)
 {
-    return _pinMapping.victron_rx >= 0;
+    return _pinMapping.victron_rx[num] >= 0;
 }
 
 bool PinMappingClass::isValidHuaweiConfig()

@@ -162,15 +162,18 @@ void setup()
     Datastore.init();
 
     // Initialize ve.direct communication
-    MessageOutput.println(F("Initialize ve.direct interface... "));
-    if (PinMapping.isValidVictronConfig()) {
-        MessageOutput.printf("ve.direct rx = %d, tx = %d\r\n", pin.victron_rx, pin.victron_tx);
-        VeDirectMppt.init(pin.victron_rx, pin.victron_tx,
-                &MessageOutput, config.Vedirect_VerboseLogging);
-        MessageOutput.println(F("done"));
-    } else {
-        MessageOutput.println(F("Invalid pin config"));
-    }
+    MessageOutput.println(F("Initialize ve.direct interfaces... "));
+    for (size_t i = 0; i < VICTRON_COUNT; i++)
+    {
+        if (PinMapping.isValidVictronConfig(i)) {
+            MessageOutput.printf("ve.direct #%i rx = %d, tx = %d\r\n", i, pin.victron_rx[i], pin.victron_tx[i]);
+            VeDirectMppt[i].init(pin.victron_rx[i], pin.victron_tx[i], i,
+                    &MessageOutput, config.Vedirect_VerboseLogging);
+            MessageOutput.println(F("done"));
+        } else {
+            MessageOutput.println(F("Invalid pin config #%i", i));
+        }    
+    }    
     // Power meter
     PowerMeter.init();
 
@@ -204,8 +207,11 @@ void loop()
     yield();
     // Vedirect_Enabled is unknown to lib. Therefor check has to be done here
     if (Configuration.get().Vedirect_Enabled) {
-        VeDirectMppt.loop();
-        yield();
+        for (int8_t i = 0; i < VICTRON_COUNT; i++)
+        {
+            VeDirectMppt[i].loop();
+            yield();
+        }    
     }
     MqttSettings.loop();
     yield();

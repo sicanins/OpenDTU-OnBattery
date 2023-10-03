@@ -13,9 +13,9 @@ public:
 
 private:
     void publish(const String& subtopic, const String& payload);
-    void publishBinarySensor(const char* caption, const char* icon, const char* subTopic, const char* payload_on, const char* payload_off);
-    void publishSensor(const char* caption, const char* icon, const char* subTopic, const char* deviceClass = NULL, const char* stateClass = NULL, const char* unitOfMeasurement = NULL);
-    void createDeviceInfo(JsonObject& object);
+    void publishBinarySensor(String serial, String pid, const char* caption, const char* icon, const char* subTopic, const char* payload_on, const char* payload_off);
+    void publishSensor(String serial, String pid, const char* caption, const char* icon, const char* subTopic, const char* deviceClass = NULL, const char* stateClass = NULL, const char* unitOfMeasurement = NULL);
+    void createDeviceInfo(String serial, String pid, JsonObject& object);
 
     bool _wasConnected = false;
     bool _updateForced = false;

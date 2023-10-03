@@ -29,10 +29,6 @@ void MqttHandleVedirectClass::loop()
         return;
     }   
 
-    if (!VeDirectMppt.isDataValid()) { 
-        return;
-    }
-
     if ((millis() >= _nextPublishFull) || (millis() >= _nextPublishUpdatesOnly)) {
         // determine if this cycle should publish full values or updates only
         if (_nextPublishFull <= _nextPublishUpdatesOnly) {
@@ -50,70 +46,77 @@ void MqttHandleVedirectClass::loop()
         }
         #endif
 
-        String value;
-        String topic = "victron/";
-        topic.concat(VeDirectMppt.veFrame.SER);
-        topic.concat("/");
+        for (int8_t i = 0; i < VICTRON_COUNT; i++)
+        {
+            if (!VeDirectMppt[i].isDataValid()) 
+                continue;
+    
+            String value;
+            String topic = "victron/";            
+            topic.concat(VeDirectMppt[i].veFrame.SER);
+            topic.concat("/");
 
-        if (_PublishFull || VeDirectMppt.veFrame.PID != _kvFrame.PID)
-            MqttSettings.publish(topic + "PID", VeDirectMppt.getPidAsString(VeDirectMppt.veFrame.PID)); 
-        if (_PublishFull || strcmp(VeDirectMppt.veFrame.SER, _kvFrame.SER) != 0)
-            MqttSettings.publish(topic + "SER", VeDirectMppt.veFrame.SER ); 
-        if (_PublishFull || strcmp(VeDirectMppt.veFrame.FW, _kvFrame.FW) != 0)
-            MqttSettings.publish(topic + "FW", VeDirectMppt.veFrame.FW); 
-        if (_PublishFull || VeDirectMppt.veFrame.LOAD != _kvFrame.LOAD)
-            MqttSettings.publish(topic + "LOAD", VeDirectMppt.veFrame.LOAD == true ? "ON": "OFF"); 
-        if (_PublishFull || VeDirectMppt.veFrame.CS != _kvFrame.CS)
-            MqttSettings.publish(topic + "CS", VeDirectMppt.getCsAsString(VeDirectMppt.veFrame.CS)); 
-        if (_PublishFull || VeDirectMppt.veFrame.ERR != _kvFrame.ERR)
-            MqttSettings.publish(topic + "ERR", VeDirectMppt.getErrAsString(VeDirectMppt.veFrame.ERR)); 
-        if (_PublishFull || VeDirectMppt.veFrame.OR != _kvFrame.OR)
-            MqttSettings.publish(topic + "OR", VeDirectMppt.getOrAsString(VeDirectMppt.veFrame.OR)); 
-        if (_PublishFull || VeDirectMppt.veFrame.MPPT != _kvFrame.MPPT)
-            MqttSettings.publish(topic + "MPPT", VeDirectMppt.getMpptAsString(VeDirectMppt.veFrame.MPPT)); 
-        if (_PublishFull || VeDirectMppt.veFrame.HSDS != _kvFrame.HSDS) {
-            value = VeDirectMppt.veFrame.HSDS;
-            MqttSettings.publish(topic + "HSDS", value); 
+            if (_PublishFull || VeDirectMppt[i].veFrame.PID != _kvFrame.PID)
+                MqttSettings.publish(topic + "PID", VeDirectMppt[i].getPidAsString(VeDirectMppt[i].veFrame.PID)); 
+            if (_PublishFull || strcmp(VeDirectMppt[i].veFrame.SER, _kvFrame.SER) != 0)
+                MqttSettings.publish(topic + "SER", VeDirectMppt[i].veFrame.SER ); 
+            if (_PublishFull || strcmp(VeDirectMppt[i].veFrame.FW, _kvFrame.FW) != 0)
+                MqttSettings.publish(topic + "FW", VeDirectMppt[i].veFrame.FW); 
+            if (_PublishFull || VeDirectMppt[i].veFrame.LOAD != _kvFrame.LOAD)
+                MqttSettings.publish(topic + "LOAD", VeDirectMppt[i].veFrame.LOAD == true ? "ON": "OFF"); 
+            if (_PublishFull || VeDirectMppt[i].veFrame.CS != _kvFrame.CS)
+                MqttSettings.publish(topic + "CS", VeDirectMppt[i].getCsAsString(VeDirectMppt[i].veFrame.CS)); 
+            if (_PublishFull || VeDirectMppt[i].veFrame.ERR != _kvFrame.ERR)
+                MqttSettings.publish(topic + "ERR", VeDirectMppt[i].getErrAsString(VeDirectMppt[i].veFrame.ERR)); 
+            if (_PublishFull || VeDirectMppt[i].veFrame.OR != _kvFrame.OR)
+                MqttSettings.publish(topic + "OR", VeDirectMppt[i].getOrAsString(VeDirectMppt[i].veFrame.OR)); 
+            if (_PublishFull || VeDirectMppt[i].veFrame.MPPT != _kvFrame.MPPT)
+                MqttSettings.publish(topic + "MPPT", VeDirectMppt[i].getMpptAsString(VeDirectMppt[i].veFrame.MPPT)); 
+            if (_PublishFull || VeDirectMppt[i].veFrame.HSDS != _kvFrame.HSDS) {
+                value = VeDirectMppt[i].veFrame.HSDS;
+                MqttSettings.publish(topic + "HSDS", value); 
+            }
+            if (_PublishFull || VeDirectMppt[i].veFrame.V != _kvFrame.V) {
+                value = VeDirectMppt[i].veFrame.V;
+                MqttSettings.publish(topic + "V", value); 
+            }
+            if (_PublishFull || VeDirectMppt[i].veFrame.I != _kvFrame.I) {
+                value = VeDirectMppt[i].veFrame.I;
+                MqttSettings.publish(topic + "I", value); 
+            }
+            if (_PublishFull || VeDirectMppt[i].veFrame.VPV != _kvFrame.VPV) {
+                value = VeDirectMppt[i].veFrame.VPV;
+                MqttSettings.publish(topic + "VPV", value); 
+            }
+            if (_PublishFull || VeDirectMppt[i].veFrame.PPV != _kvFrame.PPV) {
+                value = VeDirectMppt[i].veFrame.PPV;
+                MqttSettings.publish(topic + "PPV", value); 
+            }
+            if (_PublishFull || VeDirectMppt[i].veFrame.H19 != _kvFrame.H19) {
+                value = VeDirectMppt[i].veFrame.H19;
+                MqttSettings.publish(topic + "H19", value); 
+            }
+            if (_PublishFull || VeDirectMppt[i].veFrame.H20 != _kvFrame.H20) {
+                value = VeDirectMppt[i].veFrame.H20;
+                MqttSettings.publish(topic + "H20", value); 
+            }
+            if (_PublishFull || VeDirectMppt[i].veFrame.H21 != _kvFrame.H21) {
+                value = VeDirectMppt[i].veFrame.H21;
+                MqttSettings.publish(topic + "H21", value); 
+            }
+            if (_PublishFull || VeDirectMppt[i].veFrame.H22 != _kvFrame.H22) {
+                value = VeDirectMppt[i].veFrame.H22;
+                MqttSettings.publish(topic + "H22", value); 
+            }
+            if (_PublishFull || VeDirectMppt[i].veFrame.H23 != _kvFrame.H23) {
+                value = VeDirectMppt[i].veFrame.H23;
+                MqttSettings.publish(topic + "H23", value); 
+            }
+            if (!_PublishFull) {
+                _kvFrame= VeDirectMppt[i].veFrame;
+            }
         }
-        if (_PublishFull || VeDirectMppt.veFrame.V != _kvFrame.V) {
-            value = VeDirectMppt.veFrame.V;
-            MqttSettings.publish(topic + "V", value); 
-        }
-        if (_PublishFull || VeDirectMppt.veFrame.I != _kvFrame.I) {
-            value = VeDirectMppt.veFrame.I;
-            MqttSettings.publish(topic + "I", value); 
-        }
-        if (_PublishFull || VeDirectMppt.veFrame.VPV != _kvFrame.VPV) {
-            value = VeDirectMppt.veFrame.VPV;
-            MqttSettings.publish(topic + "VPV", value); 
-        }
-        if (_PublishFull || VeDirectMppt.veFrame.PPV != _kvFrame.PPV) {
-            value = VeDirectMppt.veFrame.PPV;
-            MqttSettings.publish(topic + "PPV", value); 
-        }
-        if (_PublishFull || VeDirectMppt.veFrame.H19 != _kvFrame.H19) {
-            value = VeDirectMppt.veFrame.H19;
-            MqttSettings.publish(topic + "H19", value); 
-        }
-        if (_PublishFull || VeDirectMppt.veFrame.H20 != _kvFrame.H20) {
-            value = VeDirectMppt.veFrame.H20;
-            MqttSettings.publish(topic + "H20", value); 
-        }
-        if (_PublishFull || VeDirectMppt.veFrame.H21 != _kvFrame.H21) {
-            value = VeDirectMppt.veFrame.H21;
-            MqttSettings.publish(topic + "H21", value); 
-        }
-        if (_PublishFull || VeDirectMppt.veFrame.H22 != _kvFrame.H22) {
-            value = VeDirectMppt.veFrame.H22;
-            MqttSettings.publish(topic + "H22", value); 
-        }
-        if (_PublishFull || VeDirectMppt.veFrame.H23 != _kvFrame.H23) {
-            value = VeDirectMppt.veFrame.H23;
-            MqttSettings.publish(topic + "H23", value); 
-        }
-        if (!_PublishFull) {
-            _kvFrame= VeDirectMppt.veFrame;
-        }
+        
 
         // now calculate next points of time to publish
         _nextPublishUpdatesOnly = millis() + (config.Mqtt_PublishInterval * 1000);

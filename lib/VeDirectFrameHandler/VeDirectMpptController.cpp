@@ -1,15 +1,15 @@
 #include <Arduino.h>
 #include "VeDirectMpptController.h"
 
-VeDirectMpptController VeDirectMppt;
+VeDirectMpptController VeDirectMppt[VICTRON_COUNT];
 
 VeDirectMpptController::VeDirectMpptController()
 {
 }
 
-void VeDirectMpptController::init(int8_t rx, int8_t tx, Print* msgOut, bool verboseLogging)
+void VeDirectMpptController::init(int8_t rx, int8_t tx, int8_t num, Print* msgOut, bool verboseLogging)
 {
-	VeDirectFrameHandler::init(rx, tx, msgOut, verboseLogging, 1);
+	VeDirectFrameHandler::init(rx, tx, msgOut, verboseLogging, 1+num);
 	if (_verboseLogging) { _msgOut->println("Finished init MPPTController"); }
 }
 

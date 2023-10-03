@@ -36,3 +36,18 @@ export interface VedirectInput {
     H22: ValueObject;
     H23: ValueObject;
 }
+
+export interface Mppts {
+    order: number;
+    device: VedirectDevice;
+    output: VedirectOutput;
+    input: VedirectInput;
+}
+
+export interface VeDirectData {
+    mppts: Mppts[];
+    dpl: DynamicPowerLimiter;    
+}
+
+
+

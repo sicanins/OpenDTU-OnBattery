@@ -6,49 +6,49 @@
         </div>
     </div>
 
-    <template v-else>
-        <div class="row gy-3">
+    <template v-else>       
+        <div v-for="mppt in mpptData" class="row gy-3">
             <div class="tab-content col-sm-12 col-md-12" id="v-pills-tabContent">
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center"
                         :class="{
-                            'text-bg-danger': vedirectData.age_critical,
-                            'text-bg-primary': !vedirectData.age_critical,
+                            'text-bg-danger': mppt.device.age_critical,
+                            'text-bg-primary': !mppt.device.age_critical,
                         }">
                         <div class="p-1 flex-grow-1">
                             <div class="d-flex flex-wrap">
                                 <div style="padding-right: 2em;">
-                                    {{ vedirectData.PID }}
+                                    {{ mppt.device.PID }}
                                 </div>
                                 <div style="padding-right: 2em;">
-                                    {{ $t('vedirecthome.SerialNumber') }} {{ vedirectData.SER }}
+                                    {{ $t('vedirecthome.SerialNumber') }} {{ mppt.device.SER }}
                                 </div>
                                 <div style="padding-right: 2em;">
-                                    {{ $t('vedirecthome.FirmwareNumber') }}  {{ vedirectData.FW }}
+                                    {{ $t('vedirecthome.FirmwareNumber') }}  {{ mppt.device.FW }}
                                 </div>
                                 <div style="padding-right: 2em;">
-                                    {{ $t('vedirecthome.DataAge') }} {{ $t('vedirecthome.Seconds', {'val': vedirectData.data_age }) }}
+                                    {{ $t('vedirecthome.DataAge') }} {{ $t('vedirecthome.Seconds', {'val': mppt.device.data_age }) }}
                                 </div>
                             </div>
                         </div>
                         <div class="btn-group me-2" role="group">
                             <button type="button"
                                 class="btn btn-sm" v-tooltip :title="$t('vedirecthome.PowerLimiterState')">
-                                <div v-if="dplData.PLSTATE == 0">
+                                <div v-if="liveData.dpl.PLSTATE == 0">
                                     <BIconXCircleFill style="font-size:24px;" />
                                 </div>
-                                <div v-else-if="dplData.PLSTATE == 1">
+                                <div v-else-if="liveData.dpl.PLSTATE == 1">
                                     <BIconBatteryCharging style="font-size:24px;" />
                                 </div>
-                                <div v-else-if="dplData.PLSTATE == 2">
+                                <div v-else-if="liveData.dpl.PLSTATE == 2">
                                     <BIconSun style="font-size:24px;" />
                                 </div>
-                                <div v-else-if="dplData.PLSTATE == 3">
+                                <div v-else-if="liveData.dpl.PLSTATE == 3">
                                     <BIconBatteryHalf style="font-size:24px;" />
                                 </div>
-                                <span v-if="dplData.PLSTATE != -1"
+                                <span v-if="liveData.dpl.PLSTATE != -1"
                                     class="position-absolute top-0 start-100 translate-middle badge rounded-pill text-bg-info">
-                                    {{ dplData.PLLIMIT }} W
+                                    {{ liveData.dpl.PLLIMIT }} W
                                 </span>
                             </button>
                         </div>
@@ -71,33 +71,33 @@
                                                 <tbody>
                                                     <tr>
                                                         <th scope="row">{{ $t('vedirecthome.LoadOutputState') }}</th>
-                                                        <td style="text-align: right">{{vedirectData.LOAD}}</td>
+                                                        <td style="text-align: right">{{mppt.device.LOAD}}</td>
                                                         <td></td>
                                                     </tr>
                                                     <tr>
                                                         <th scope="row">{{ $t('vedirecthome.StateOfOperation') }}</th>
-                                                        <td style="text-align: right">{{vedirectData.CS}}</td>
+                                                        <td style="text-align: right">{{mppt.device.CS}}</td>
                                                         <td></td>
                                                     </tr>
                                                     <tr>
                                                         <th scope="row">{{ $t('vedirecthome.TrackerOperationMode') }}</th>
-                                                        <td style="text-align: right">{{vedirectData.MPPT}}</td>
+                                                        <td style="text-align: right">{{mppt.device.MPPT}}</td>
                                                         <td></td>
                                                     </tr>
                                                     <tr>
                                                         <th scope="row">{{ $t('vedirecthome.OffReason') }}</th>
-                                                        <td style="text-align: right">{{vedirectData.OR}}</td>
+                                                        <td style="text-align: right">{{mppt.device.OR}}</td>
                                                         <td></td>
                                                     </tr>
                                                     <tr>
                                                         <th scope="row">{{ $t('vedirecthome.ErrorCode') }}</th>
-                                                        <td style="text-align: right">{{vedirectData.ERR}}</td>
+                                                        <td style="text-align: right">{{mppt.device.ERR}}</td>
                                                         <td></td>
                                                     </tr>
                                                     <tr>
                                                         <th scope="row">{{ $t('vedirecthome.DaySequenceNumber') }}</th>
-                                                        <td style="text-align: right">{{vedirectData.HSDS.v}}</td>
-                                                        <td>{{vedirectData.HSDS.u}}</td>
+                                                        <td style="text-align: right">{{mppt.device.HSDS.v}}</td>
+                                                        <td>{{mppt.device.HSDS.u}}</td>
                                                     </tr>
                                                 </tbody>
                                             </table>
@@ -119,7 +119,7 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    <tr v-for="(prop, key) in vedirectOutput" v-bind:key="key">
+                                                    <tr v-for="(prop, key) in mppt.output" v-bind:key="key">
                                                         <th scope="row">{{ $t('vedirecthome.output.' + key) }}</th>
                                                         <td style="text-align: right">
                                                             {{ $n(prop.v, 'decimal', {
@@ -149,7 +149,7 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    <tr v-for="(prop, key) in vedirectInput" v-bind:key="key">
+                                                    <tr v-for="(prop, key) in mppt.input" v-bind:key="key">
                                                         <th scope="row">{{ $t('vedirecthome.input.' + key) }}</th>
                                                         <td style="text-align: right">
                                                             {{ $n(prop.v, 'decimal', {
@@ -170,6 +170,9 @@
                 </div>   
             </div>
         </div>
+
+
+
     </template>
 
 
@@ -178,7 +181,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import type { DynamicPowerLimiter, VedirectDevice, VedirectOutput, VedirectInput } from '@/types/VedirectLiveDataStatus';
+import type { DynamicPowerLimiter, VeDirectData, Mppts } from '@/types/VedirectLiveDataStatus';
 import { handleResponse, authHeader, authUrl } from '@/utils/authentication';
 import {
     BIconSun,
@@ -202,9 +205,10 @@ export default defineComponent({
             dataAgeInterval: 0,
             dataLoading: true,
             dplData: {} as DynamicPowerLimiter,
-            vedirectData: {} as VedirectDevice,
+            liveData: {} as VeDirectData,
+            /* vedirectData: {} as VedirectDevice,
             vedirectOutput: {} as VedirectOutput,
-            vedirectInput: {} as VedirectInput,
+            vedirectInput: {} as VedirectInput, */
             isFirstFetchAfterConnect: true,
         };
     },
@@ -216,17 +220,22 @@ export default defineComponent({
     unmounted() {
         this.closeSocket();
     },
+    computed: {        
+        mpptData(): Mppts[] {
+            return this.liveData.mppts.slice().sort((a : Mppts, b: Mppts) => {
+                return a.order - b.order;
+            });
+        }
+    },
     methods: {
         getInitialData() {
             console.log("Get initalData for VeDirect");
-            this.dataLoading = true;
+            this.dataLoading = true;        
+
             fetch("/api/vedirectlivedata/status", { headers: authHeader() })
                 .then((response) => handleResponse(response, this.$emitter, this.$router))
                 .then((root) => {
-                    this.dplData = root["dpl"];
-                    this.vedirectData = root["device"];
-                    this.vedirectOutput = root["output"];
-                    this.vedirectInput = root["input"];
+                    this.liveData = root;                
                     this.dataLoading = false;
                 });
         },
@@ -236,17 +245,19 @@ export default defineComponent({
             const { protocol, host } = location;
             const authString = authUrl();
             const webSocketUrl = `${protocol === "https:" ? "wss" : "ws"
-                }://${authString}${host}/vedirectlivedata`;
+                }://${authString}${host}/vedirectlivedata
+                
+                
+                
+                
+                `;
 
             this.socket = new WebSocket(webSocketUrl);
 
             this.socket.onmessage = (event) => {
                 console.log(event);
                 var root = JSON.parse(event.data);
-                this.dplData = root["dpl"];
-                this.vedirectData = root["device"];
-                this.vedirectOutput = root["output"];
-                this.vedirectInput = root["input"];
+                this.liveData = root;
                 this.dataLoading = false;
                 this.heartCheck(); // Reset heartbeat detection
             };
@@ -261,10 +272,12 @@ export default defineComponent({
                 this.closeSocket();
             };
         },
-        initDataAgeing() {
+        initDataAgeing() {           
             this.dataAgeInterval = setInterval(() => {
-                if (this.vedirectData) {
-                    this.vedirectData.data_age++;
+                if (this.mpptData) {
+                    this.mpptData.forEach(element => {
+                        element.device.data_age++;
+                    });
                 }
             }, 1000);
         },

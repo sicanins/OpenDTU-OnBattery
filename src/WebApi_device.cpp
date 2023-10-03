@@ -84,8 +84,12 @@ void WebApiDeviceClass::onDeviceAdminGet(AsyncWebServerRequest* request)
     display["language"] = config.Display_Language;
 
     JsonObject victronPinObj = curPin.createNestedObject("victron");
-    victronPinObj[F("rx")] = pin.victron_rx;
-    victronPinObj[F("tx")] = pin.victron_tx;
+    victronPinObj[F("rx")] = pin.victron_rx[0];
+    victronPinObj[F("tx")] = pin.victron_tx[0];
+    #if VICTRON_COUNT > 1
+        victronPinObj[F("rx2")] = pin.victron_rx[1];
+        victronPinObj[F("tx2")] = pin.victron_tx[1];
+    #endif
 
     JsonObject batteryPinObj = curPin.createNestedObject("battery");
     batteryPinObj[F("rx")] = pin.battery_rx;

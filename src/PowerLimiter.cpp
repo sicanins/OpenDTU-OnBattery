@@ -366,13 +366,25 @@ void PowerLimiterClass::unconditionalSolarPassthrough(std::shared_ptr<InverterAb
 {
     CONFIG_T& config = Configuration.get();
 
-    if (!config.Vedirect_Enabled || !VeDirectMppt.isDataValid()) {
+    bool dataValid = true;
+    for (int8_t i = 0; i < VICTRON_COUNT; i++)
+    {
+        if (!VeDirectMppt[i].isDataValid())
+            dataValid = false;
+    }
+    
+    if (!config.Vedirect_Enabled || !dataValid) {
         shutdown(Status::NoVeDirect);
         return;
     }
 
-    int32_t solarPower = VeDirectMppt.veFrame.V * VeDirectMppt.veFrame.I;
+    int32_t solarPower = 0;    
+    for (int8_t i = 0; i < VICTRON_COUNT; i++)
+    {
+        solarPower += VeDirectMppt[i].veFrame.V * VeDirectMppt[i].veFrame.I;
+    }
     setNewPowerLimit(inverter, inverterPowerDcToAc(inverter, solarPower));
+
     announceStatus(Status::UnconditionalSolarPassthrough);
 }
 
@@ -404,14 +416,28 @@ bool PowerLimiterClass::canUseDirectSolarPower()
 {
     CONFIG_T& config = Configuration.get();
 
+    bool dataValid = true;
+    for (int8_t i = 0; i < VICTRON_COUNT; i++)
+    {
+        if (!VeDirectMppt[i].isDataValid())
+            dataValid = false;
+    }
+
     if (!config.PowerLimiter_SolarPassThroughEnabled
             || isBelowStopThreshold()
             || !config.Vedirect_Enabled
-            || !VeDirectMppt.isDataValid()) {
+            || !dataValid) {
         return false;
     }
 
-    return VeDirectMppt.veFrame.PPV >= 20; // enough power?
+    bool enoughPower = true;
+    for (int8_t i = 0; i < VICTRON_COUNT; i++)
+    {
+        if (VeDirectMppt[i].veFrame.PPV < 20)
+            enoughPower = false;
+    }    
+
+    return enoughPower;
 }
 
 
@@ -569,7 +595,13 @@ int32_t PowerLimiterClass::getSolarChargePower()
         return 0;
     }
 
-    return VeDirectMppt.veFrame.V * VeDirectMppt.veFrame.I;
+    int32_t solarPower = 0;    
+    for (int8_t i = 0; i < VICTRON_COUNT; i++)
+    {
+        solarPower += VeDirectMppt[i].veFrame.V * VeDirectMppt[i].veFrame.I;
+    }
+
+    return solarPower;
 }
 
 float PowerLimiterClass::getLoadCorrectedVoltage()

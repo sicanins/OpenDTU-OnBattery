@@ -39,7 +39,7 @@ class VeDirectMpptController : public VeDirectFrameHandler {
 public:
     VeDirectMpptController();
 
-    void init(int8_t rx, int8_t tx, Print* msgOut, bool verboseLogging);
+    void init(int8_t rx, int8_t tx, int8_t num, Print* msgOut, bool verboseLogging);
     String getMpptAsString(uint8_t mppt);    // state of mppt as string
     String getCsAsString(uint8_t cs);        // current state as string
     String getOrAsString(uint32_t offReason); // off reason as string
@@ -71,4 +71,4 @@ private:
     MovingAverage<double, 5> _efficiency;
 };
 
-extern VeDirectMpptController VeDirectMppt;
+extern VeDirectMpptController VeDirectMppt[VICTRON_COUNT];

@@ -13,6 +13,15 @@
 #define VICTRON_PIN_TX 21
 #endif
 
+#ifndef VICTRON_PIN_RX2
+#define VICTRON_PIN_RX2 -1
+#endif
+
+#ifndef VICTRON_PIN_TX2
+#define VICTRON_PIN_TX2 -1
+#endif
+
+
 class MqttHandleVedirectClass {
 public:
     void init();

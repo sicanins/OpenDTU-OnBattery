@@ -10,7 +10,7 @@
 
 #define MAPPING_NAME_STRLEN 31
 
-struct PinMapping_t {
+struct PinMapping_t { 
     char name[MAPPING_NAME_STRLEN + 1];
     int8_t nrf24_miso;
     int8_t nrf24_mosi;
@@ -38,8 +38,8 @@ struct PinMapping_t {
     uint8_t display_clk;
     uint8_t display_cs;
     uint8_t display_reset;
-    int8_t victron_tx;
-    int8_t victron_rx;
+    int8_t victron_tx[VICTRON_COUNT];
+    int8_t victron_rx[VICTRON_COUNT];
     int8_t battery_rx;
     int8_t battery_rxen;
     int8_t battery_tx;
@@ -62,7 +62,7 @@ public:
     bool isValidNrf24Config();
     bool isValidCmt2300Config();
     bool isValidEthConfig();
-    bool isValidVictronConfig();
+    bool isValidVictronConfig(uint8_t num);
     bool isValidHuaweiConfig();
     
 private:
