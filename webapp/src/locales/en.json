@@ -552,7 +552,8 @@
         "httpJsonPathDescription": "JSON path to find the power value in the response. This uses the JSON path query syntax from mobizt/FirebaseJson. See below for some examples.",
         "httpTimeout": "Timeout",
         "testHttpRequest": "Run test",
-        "milliSeconds": "ms"
+        "milliSeconds": "ms",
+        "httpinterval": "Read interval"
     },
     "powerlimiteradmin": {
         "PowerLimiterSettings": "Power Limiter Settings",
