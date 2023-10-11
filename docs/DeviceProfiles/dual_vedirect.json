@@ -1,0 +1,44 @@
+[
+    {
+        "name": "Dual VEdirect and Pylontech",
+        "nrf24": {
+            "miso": 19,
+            "mosi": 23,
+            "clk": 18,
+            "irq": 27,
+            "en": 4,
+            "cs": 5
+        },
+        "victron": {
+            "rx": 35,
+            "tx": 33,
+            "rx2": 34,
+            "tx2": 25
+        },
+        "battery": {
+            "rx": 26,
+            "tx": 32
+        }        
+    },    
+    {
+        "name": "Single VEdirect and Pylontech",
+        "nrf24": {
+            "miso": 19,
+            "mosi": 23,
+            "clk": 18,
+            "irq": 27,
+            "en": 4,
+            "cs": 5
+        },
+        "victron": {
+            "rx": 35,
+            "tx": 33,
+            "rx2": -1,
+            "tx2": -1
+        },
+        "battery": {
+            "rx": 17,
+            "tx": 32
+        }        
+    }   
+]
