@@ -149,12 +149,32 @@ void PylontechCanReceiver::loop()
         case 0x356: {
             _stats->_voltage = this->scaleValue(this->readSignedInt16(rx_message.data), 0.01);
             _stats->_current = this->scaleValue(this->readSignedInt16(rx_message.data + 2), 0.1);
+            _stats->_power = _stats->_voltage * _stats->_current;
             _stats->_temperature = this->scaleValue(this->readSignedInt16(rx_message.data + 4), 0.1);
 
+
+            float delta_s = _stats->getAgePowerMilliSeconds() / 1000.0;
+
+            if (delta_s > 0 && delta_s < 30)
+            {
+                float delta_energy_Wh = _stats->_power * delta_s / 3600;
+                if (delta_energy_Wh > 0)
+                {
+                    _stats->_charge_energy += delta_energy_Wh;
+                }
+                else if (delta_energy_Wh < 0)
+                {
+                    _stats->_discharge_energy += delta_energy_Wh; 
+                }
+            }
             if (_verboseLogging) {
                 MessageOutput.printf("[Pylontech] voltage: %f current: %f temperature: %f\n",
                         _stats->_voltage, _stats->_current, _stats->_temperature);
             }
+
+            _stats->setLastUpdatePower(millis());
+
+
             break;
         }
 

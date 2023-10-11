@@ -15,6 +15,7 @@ class BatteryStats {
 
         // the last time *any* datum was updated
         uint32_t getAgeSeconds() const { return (millis() - _lastUpdate) / 1000; }
+        float getAgePowerMilliSeconds() const { return (millis() - _lastUpdatePower) ; }
         bool updateAvailable(uint32_t since) const { return _lastUpdate > since; }
 
         uint8_t getSoC() const { return _SoC; }
@@ -42,6 +43,7 @@ class BatteryStats {
         uint8_t _SoC = 0;
         uint32_t _lastUpdateSoC = 0;
         uint32_t _lastUpdate = 0;
+        uint32_t _lastUpdatePower = 0;
 };
 
 class PylontechBatteryStats : public BatteryStats {
@@ -55,6 +57,7 @@ class PylontechBatteryStats : public BatteryStats {
         void setManufacturer(String&& m) { _manufacturer = std::move(m); }
         void setSoC(uint8_t SoC) { _SoC = SoC; _lastUpdateSoC = millis(); }
         void setLastUpdate(uint32_t ts) { _lastUpdate = ts; }
+        void setLastUpdatePower(uint32_t ts) { _lastUpdatePower = ts; }
 
         float _chargeVoltage;
         float _chargeCurrentLimitation;
@@ -64,7 +67,11 @@ class PylontechBatteryStats : public BatteryStats {
         // total current into (positive) or from (negative)
         // the battery, i.e., the charging current
         float _current;
+        float _power;
         float _temperature;
+
+        float _charge_energy;
+        float _discharge_energy;
 
         bool _alarmOverCurrentDischarge;
         bool _alarmOverCurrentCharge;
