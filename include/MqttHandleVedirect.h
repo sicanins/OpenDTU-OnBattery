@@ -28,7 +28,7 @@ public:
     void loop();
 private:
 
-    VeDirectMpptController::veMpptStruct _kvFrame{};
+    VeDirectMpptController::veMpptStruct _kvFrame[VICTRON_COUNT]{};
 
     // point of time in millis() when updated values will be published
     uint32_t _nextPublishUpdatesOnly = 0;
