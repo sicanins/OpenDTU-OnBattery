@@ -357,6 +357,8 @@ bool ConfigurationClass::read()
     config.PowerMeter_Enabled = powermeter["enabled"] | POWERMETER_ENABLED;
     config.PowerMeter_VerboseLogging = powermeter["verbose_logging"] | VERBOSE_LOGGING;
     config.PowerMeter_Interval =  powermeter["interval"] | POWERMETER_INTERVAL;
+    if (config.PowerMeter_Interval < 100)
+        config.PowerMeter_Interval *= 1000;
     config.PowerMeter_Source =  powermeter["source"] | POWERMETER_SOURCE;
     strlcpy(config.PowerMeter_MqttTopicPowerMeter1, powermeter["mqtt_topic_powermeter_1"] | "", sizeof(config.PowerMeter_MqttTopicPowerMeter1));
     strlcpy(config.PowerMeter_MqttTopicPowerMeter2, powermeter["mqtt_topic_powermeter_2"] | "", sizeof(config.PowerMeter_MqttTopicPowerMeter2));
