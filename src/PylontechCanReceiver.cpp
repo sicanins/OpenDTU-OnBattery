@@ -164,7 +164,7 @@ void PylontechCanReceiver::loop()
                 }
                 else if (delta_energy_Wh < 0)
                 {
-                    _stats->_discharge_energy += delta_energy_Wh; 
+                    _stats->_discharge_energy += delta_energy_Wh * -1.0; 
                 }
             }
             if (_verboseLogging) {

@@ -51,6 +51,7 @@ void MqttHandleVedirectClass::loop()
         int8_t count = 0;
         double E_total = 0;
         int32_t PPV_total = 0; 
+        int32_t P_total = 0; 
         double H19_total = 0;
         double H20_total = 0;
         double H21_total = 0;
@@ -71,6 +72,7 @@ void MqttHandleVedirectClass::loop()
 
             E_total += VeDirectMppt[i].veFrame.E;
             PPV_total += VeDirectMppt[i].veFrame.PPV;
+            P_total += VeDirectMppt[i].veFrame.P;
             H19_total += VeDirectMppt[i].veFrame.H19;
             H20_total += VeDirectMppt[i].veFrame.H20;
             H21_total += VeDirectMppt[i].veFrame.H21;
@@ -148,6 +150,8 @@ void MqttHandleVedirectClass::loop()
         String value;
         value = PPV_total;
         MqttSettings.publish(topic_root + "PPV_total",  value); 
+        value = P_total;
+        MqttSettings.publish(topic_root + "P_total",  value); 
 
         value = E_total/count;
         MqttSettings.publish(topic_root + "E_total", value);  
