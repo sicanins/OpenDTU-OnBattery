@@ -110,6 +110,21 @@ void PowerLimiterClass::loop()
     CONFIG_T const& config = Configuration.get();
     _verboseLogging = config.PowerLimiter_VerboseLogging;
 
+    // check if the fast power limiter can be used: battery must be installed and working
+    bool useFastPowerLimiter = _mode == Mode::Normal;
+    if (!config.Battery_Enabled || !Battery.getStats()->isValid() || !(Battery.getStats()->getAgePowerMilliSeconds() < 60 * 1000))
+        useFastPowerLimiter = false;       
+
+    // check if the fast power limiter can be used: victron mppts must be installed and working
+    for (int8_t i = 0; i < VICTRON_COUNT; i++)
+    {
+        if (VeDirectMppt[i].isInit())
+        {
+            if (!config.Vedirect_Enabled || !VeDirectMppt[i].isDataValid() || !((millis() - VeDirectMppt[i].getLastUpdate() ) < 60 * 1000))
+                useFastPowerLimiter = false;      
+        }
+    }
+        
     // we know that the Hoymiles library refuses to send any message to any
     // inverter until the system has valid time information. until then we can
     // do nothing, not even shutdown the inverter.
@@ -208,24 +223,29 @@ void PowerLimiterClass::loop()
             _inverter->SystemConfigPara()->getLastUpdateCommand(),
             _inverter->PowerCommand()->getLastUpdateCommand());
 
-    // wait for power meter and inverter stat updates after a settling phase
+    // wait for power meter and inverter stat updates after a settling phase; 3s because this is the time 
+    // required to get proper updates from victron mppts and pylontech battery
     auto settlingEnd = lastUpdateCmd + 3 * 1000;
 
-    if (millis() < settlingEnd) { return announceStatus(Status::Settling); }
+    if (millis() < settlingEnd ) { return announceStatus(Status::Settling); }
 
-    if (_inverter->Statistics()->getLastUpdate() <= settlingEnd) {
-        return announceStatus(Status::InverterStatsPending);
+    // the fast limiter does not rely on the status update of the hoymiles, therefore we dont need to wait
+    if (!useFastPowerLimiter)
+    {
+        if (_inverter->Statistics()->getLastUpdate() <= settlingEnd) {
+            return announceStatus(Status::InverterStatsPending);
+        }
     }
 
     if (PowerMeter.getLastPowerMeterUpdate() <= settlingEnd) {
         return announceStatus(Status::PowerMeterPending);
-    }
+    }    
 
     // since _lastCalculation and _calculationBackoffMs are initialized to
     // zero, this test is passed the first time the condition is checked.
     if (millis() < (_lastCalculation + _calculationBackoffMs)) {
         return announceStatus(Status::Stable);
-    }
+    }    
 
     if (_verboseLogging) {
         MessageOutput.println("[DPL::loop] ******************* ENTER **********************");
@@ -310,27 +330,34 @@ void PowerLimiterClass::loop()
                 (_batteryDischargeEnabled?"allowed":"prevented"),
                 static_cast<int32_t>(round(PowerMeter.getPowerTotal())),
                 config.PowerLimiter_TargetPowerConsumption);
-    }
+    }   
 
     // Calculate and set Power Limit (NOTE: might reset _inverter to nullptr!)
-    int32_t newPowerLimit = calcPowerLimit(_inverter, canUseDirectSolarPower(), _batteryDischargeEnabled);
+    int32_t newPowerLimit = calcPowerLimit(_inverter, canUseDirectSolarPower(), _batteryDischargeEnabled, useFastPowerLimiter);
     bool limitUpdated = setNewPowerLimit(_inverter, newPowerLimit);
 
     if (_verboseLogging) {
-        MessageOutput.printf("[DPL::loop] ******************* Leaving PL, calculated limit: %d W, requested limit: %d W (%s)\r\n",
-                newPowerLimit, _lastRequestedPowerLimit,
+        MessageOutput.printf("[DPL::loop] ******************* Leaving PL, calculated limit: %d W, requested limit: %d W, integrator: %d W (%s)\r\n",
+                newPowerLimit, _lastRequestedPowerLimit, _integrator,
                 (limitUpdated?"updated from calculated":"kept last requested"));
     }
 
     _lastCalculation = millis();
 
-    if (!limitUpdated) {
+    if (useFastPowerLimiter)
+    {
+        // run in a fixed 1s interval for the fast power limiter
+        _calculationBackoffMs = 1000;       
+    }
+    else
+    {
+        if (!limitUpdated) {
         // increase polling backoff if system seems to be stable
         _calculationBackoffMs = std::min<uint32_t>(1024, _calculationBackoffMs * 2);
         return announceStatus(Status::Stable);
+        }
+        _calculationBackoffMs = _calculationBackoffMsDefault;
     }
-
-    _calculationBackoffMs = _calculationBackoffMsDefault;
 }
 
 /**
@@ -449,13 +476,16 @@ bool PowerLimiterClass::canUseDirectSolarPower()
 // | 3      | true                    | doesn't matter    | false                   | PL = PowerMeter value (Battery can supply unlimited energy) |
 // | 4      | true                    | false             | true                    | PL = PowerMeter value                                       |
 // | 5      | true                    | true              | true                    | PL = max(PowerMeter value, Victron Power)                   |
+//
+// fastPowerLimiter changes the strategy a bit to cancel waiting for the Hoymiles power update and can only be used if the battery can supply discharge power
 
-int32_t PowerLimiterClass::calcPowerLimit(std::shared_ptr<InverterAbstract> inverter, bool solarPowerEnabled, bool batteryDischargeEnabled)
+int32_t PowerLimiterClass::calcPowerLimit(std::shared_ptr<InverterAbstract> inverter, bool solarPowerEnabled, bool batteryDischargeEnabled, bool useFastPowerLimiter)
 {
     CONFIG_T& config = Configuration.get();
     
     int32_t acPower = 0;
-    int32_t newPowerLimit = round(PowerMeter.getPowerTotal());
+    int32_t powerMeterValue = round(PowerMeter.getPowerTotal());
+    int32_t newPowerLimit = powerMeterValue;
 
     if (!solarPowerEnabled && !batteryDischargeEnabled) {
       // Case 1 - No energy sources available
@@ -467,7 +497,32 @@ int32_t PowerLimiterClass::calcPowerLimit(std::shared_ptr<InverterAbstract> inve
         // the produced power of this inverter has also to be taken into account.
         // We don't use FLD_PAC from the statistics, because that
         // data might be too old and unreliable.
-        acPower = static_cast<int>(inverter->Statistics()->getChannelFieldValue(TYPE_AC, (ChannelNum_t) config.PowerLimiter_InverterChannelId, FLD_PAC)); 
+
+        // in fast power limiter mode, calculate the inverter output power, dont wait for the inverter update
+        if (useFastPowerLimiter)
+        {
+            // use the power gathered from the Victrons and the Pylontech as Inverter output power (with 95% efficiency)
+            int32_t P_victron = 0;
+            for (int8_t i = 0; i < VICTRON_COUNT; i++)
+            {
+                P_victron += VeDirectMppt[i].veFrame.P;
+            } 
+
+            int32_t P_battery = Battery.getStats()->getPower() * -1;
+            float_t P = P_battery + P_victron;
+
+            // apply the 95% default efficiency of the Hoymiles --> this is the AC power of the Hoymiles
+            P = 0.95 * P;
+
+            acPower = P;        
+
+            if (_verboseLogging)
+                MessageOutput.printf("[DPL::loop] acpower, calculated: %d W\r\n", acPower);
+        }
+        else
+        {
+            acPower = static_cast<int>(inverter->Statistics()->getChannelFieldValue(TYPE_AC, (ChannelNum_t) config.PowerLimiter_InverterChannelId, FLD_PAC)); 
+        }
         newPowerLimit += acPower;
     }
 
@@ -476,7 +531,23 @@ int32_t PowerLimiterClass::calcPowerLimit(std::shared_ptr<InverterAbstract> inve
     // Case 3
     newPowerLimit -= config.PowerLimiter_TargetPowerConsumption;
 
-    // At this point we've calculated the required energy to compensate for household consumption. 
+    // apply the integrator. It cancels out smaller errors over time and creates a stable controller
+    if (useFastPowerLimiter)
+    {
+        int32_t diff = powerMeterValue - config.PowerLimiter_TargetPowerConsumption;
+        int32_t integrator_max = config.PowerLimiter_UpperPowerLimit / 10;
+        int32_t gain = 2;
+        if (diff < -5 && _integrator > integrator_max*-1)
+                _integrator -= gain;
+        else if (diff > 5 && _integrator < integrator_max)
+                _integrator += gain;     
+        newPowerLimit += _integrator;
+
+        if (newPowerLimit < config.PowerLimiter_LowerPowerLimit)
+            newPowerLimit = config.PowerLimiter_LowerPowerLimit;
+    }
+
+    // At this point we've calculated the required power to compensate for household consumption. 
     // If the battery is enabled this can always be supplied since we assume that the battery can supply unlimited power
     // The next step is to determine if the Solar power as provided by the Victron charger
     // actually constrains or dictates another inverter power value

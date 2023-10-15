@@ -21,6 +21,8 @@ class BatteryStats {
         uint8_t getSoC() const { return _SoC; }
         uint32_t getSoCAgeSeconds() const { return (millis() - _lastUpdateSoC) / 1000; }
 
+        int32_t getPower() const { return _Power; } 
+
         // convert stats to JSON for web application live view
         virtual void getLiveViewData(JsonVariant& root) const;
 
@@ -44,6 +46,7 @@ class BatteryStats {
         uint32_t _lastUpdateSoC = 0;
         uint32_t _lastUpdate = 0;
         uint32_t _lastUpdatePower = 0;
+        int32_t _Power = 0;
 };
 
 class PylontechBatteryStats : public BatteryStats {
@@ -56,6 +59,7 @@ class PylontechBatteryStats : public BatteryStats {
     private:
         void setManufacturer(String&& m) { _manufacturer = std::move(m); }
         void setSoC(uint8_t SoC) { _SoC = SoC; _lastUpdateSoC = millis(); }
+        void setPower(int32_t power) { _Power = power; _lastUpdatePower = millis(); }
         void setLastUpdate(uint32_t ts) { _lastUpdate = ts; }
         void setLastUpdatePower(uint32_t ts) { _lastUpdatePower = ts; }
 

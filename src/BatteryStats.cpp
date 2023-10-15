@@ -205,6 +205,15 @@ void JkBmsBatteryStats::updateFrom(JkBms::DataPointContainer const& dp)
         _lastUpdateSoC = oSoCDataPoint->getTimestamp();
     }
 
+    auto milliAmpsValue = dp.get<Label::BatteryCurrentMilliAmps>();
+    auto milliVoltsValue = dp.get<Label::BatteryVoltageMilliVolt>();
+    if (milliAmpsValue.has_value() && milliVoltsValue.has_value())
+    {
+        float power = (float)milliAmpsValue.value() * (float)milliVoltsValue.value() / 1000000;
+        _Power = power; // todo check if this needs a "*-1"
+        _lastUpdatePower = millis();
+    }
+
     _dataPoints.updateFrom(dp);
 
     _lastUpdate = millis();

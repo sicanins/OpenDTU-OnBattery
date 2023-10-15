@@ -150,6 +150,7 @@ void PylontechCanReceiver::loop()
             _stats->_voltage = this->scaleValue(this->readSignedInt16(rx_message.data), 0.01);
             _stats->_current = this->scaleValue(this->readSignedInt16(rx_message.data + 2), 0.1);
             _stats->_power = _stats->_voltage * _stats->_current;
+            _stats->setPower(_stats->_power);
             _stats->_temperature = this->scaleValue(this->readSignedInt16(rx_message.data + 4), 0.1);
 
 
@@ -171,9 +172,6 @@ void PylontechCanReceiver::loop()
                 MessageOutput.printf("[Pylontech] voltage: %f current: %f temperature: %f\n",
                         _stats->_voltage, _stats->_current, _stats->_temperature);
             }
-
-            _stats->setLastUpdatePower(millis());
-
 
             break;
         }
