@@ -1,3 +1,13 @@
+# This is a fork of [OpenDTU on Battery](https://github.com/helgeerbe/OpenDTU-OnBattery) by helgeerbe
+
+A few things are added:
+- support for two Victron SmartSolar
+- added MQTT output for sum of the SmartSolar, as well as a few more power and energy values for Pylontech
+- Added an integrator to the Power Limiter in order to account for errors in the system (still being optimized)
+- Added support for Pylontech+Victron for the Power Limiter: it does not need to read the Hoymiles if both are present -> faster
+
+# Below you find the original readme:
+
 - [OpenDTU-onBattery](#opendtu-onbattery)
   - [What is OpenDTU-onBattery](#what-is-opendtu-onbattery)
   - [History of the project](#history-of-the-project)
