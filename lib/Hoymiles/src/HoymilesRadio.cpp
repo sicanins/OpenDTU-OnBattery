@@ -61,39 +61,39 @@ void HoymilesRadio::handleReceivedPackage()
             CommandAbstract* cmd = _commandQueue.front().get();
             uint8_t verifyResult = inv->verifyAllFragments(cmd);
             if (verifyResult == FRAGMENT_ALL_MISSING_RESEND) {
-                Hoymiles.getMessageOutput()->println("Nothing received, resend whole request");
+                Hoymiles.getVerboseMessageOutput()->println("Nothing received, resend whole request");
                 sendLastPacketAgain();
 
             } else if (verifyResult == FRAGMENT_ALL_MISSING_TIMEOUT) {
-                Hoymiles.getMessageOutput()->println("Nothing received, resend count exeeded");
+                Hoymiles.getVerboseMessageOutput()->println("Nothing received, resend count exeeded");
                 _commandQueue.pop();
                 _busyFlag = false;
 
             } else if (verifyResult == FRAGMENT_RETRANSMIT_TIMEOUT) {
-                Hoymiles.getMessageOutput()->println("Retransmit timeout");
+                Hoymiles.getVerboseMessageOutput()->println("Retransmit timeout");
                 _commandQueue.pop();
                 _busyFlag = false;
 
             } else if (verifyResult == FRAGMENT_HANDLE_ERROR) {
-                Hoymiles.getMessageOutput()->println("Packet handling error");
+                Hoymiles.getVerboseMessageOutput()->println("Packet handling error");
                 _commandQueue.pop();
                 _busyFlag = false;
 
             } else if (verifyResult > 0) {
                 // Perform Retransmit
-                Hoymiles.getMessageOutput()->print("Request retransmit: ");
-                Hoymiles.getMessageOutput()->println(verifyResult);
+                Hoymiles.getVerboseMessageOutput()->print("Request retransmit: ");
+                Hoymiles.getVerboseMessageOutput()->println(verifyResult);
                 sendRetransmitPacket(verifyResult);
 
             } else {
                 // Successful received all packages
-                Hoymiles.getMessageOutput()->println("Success");
+                Hoymiles.getVerboseMessageOutput()->println("Success");
                 _commandQueue.pop();
                 _busyFlag = false;
             }
         } else {
             // If inverter was not found, assume the command is invalid
-            Hoymiles.getMessageOutput()->println("RX: Invalid inverter found");
+            Hoymiles.getVerboseMessageOutput()->println("RX: Invalid inverter found");
             _commandQueue.pop();
             _busyFlag = false;
         }
@@ -107,7 +107,7 @@ void HoymilesRadio::handleReceivedPackage()
                 inv->clearRxFragmentBuffer();
                 sendEsbPacket(cmd);
             } else {
-                Hoymiles.getMessageOutput()->println("TX: Invalid inverter found");
+                Hoymiles.getVerboseMessageOutput()->println("TX: Invalid inverter found");
                 _commandQueue.pop();
             }
         }

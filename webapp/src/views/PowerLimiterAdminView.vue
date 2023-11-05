@@ -265,6 +265,32 @@
                 </div>
             </CardElement>
 
+            <CardElement :text="$t('powerlimiteradmin.Integrator')" textVariant="text-bg-primary" add-space
+                         v-show="powerLimiterConfigList.enabled"
+            >
+                <div class="row mb-3">
+                    <label for="integrator_gain" class="col-sm-2 col-form-label">{{ $t('powerlimiteradmin.IntegratorGain') }}:</label>
+                    <div class="col-sm-10">
+                        <div class="input-group">
+                            <input type="number" step="1" class="form-control" id="integrator_gain"
+                                placeholder="1" v-model="powerLimiterConfigList.integrator_gain"
+                                aria-describedby="integratorGainDescription" min="0" max="50.0" required/>
+                                <span class="input-group-text" id="integratorGainDescription">%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label for="integrator_limit" class="col-sm-2 col-form-label">{{ $t('powerlimiteradmin.IntegratorLimit') }}:</label>
+                    <div class="col-sm-10">
+                        <div class="input-group">
+                            <input type="number" step="1" class="form-control" id="integrator_limit"
+                                placeholder="50" v-model="powerLimiterConfigList.integrator_limit"
+                                aria-describedby="integratorLimitDescription" min="0" max="200" required/>
+                                <span class="input-group-text" id="integratorGainDescription">W</span>
+                        </div>
+                    </div>
+                </div>
+            </CardElement>
             <button type="submit" class="btn btn-primary mb-3">{{ $t('powerlimiteradmin.Save') }}</button>
         </form>
     </BasePage>

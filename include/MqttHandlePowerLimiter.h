@@ -8,6 +8,7 @@ class MqttHandlePowerLimiterClass {
 public:
     void init();
     void loop();
+    void publishPowerLimitDebug(float requestedPowerLimit, int32_t integrator);
 
 private:
     void onCmdMode(const espMqttClientTypes::MessageProperties& properties, const char* topic, const uint8_t* payload, size_t len, size_t index, size_t total);

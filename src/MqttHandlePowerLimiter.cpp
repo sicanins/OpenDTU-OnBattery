@@ -44,6 +44,18 @@ void MqttHandlePowerLimiterClass::loop()
     }
 }
 
+void MqttHandlePowerLimiterClass::publishPowerLimitDebug(float requestedPowerLimit, int32_t integrator)
+{
+    {
+    auto val = static_cast<unsigned>(requestedPowerLimit);
+    MqttSettings.publish("powerlimiter/debug/power_limit_request", String(val));
+    }
+
+    {
+    auto val = static_cast<signed>(integrator);
+    MqttSettings.publish("powerlimiter/debug/integrator", String(val));
+    }
+}
 
 void MqttHandlePowerLimiterClass::onCmdMode(const espMqttClientTypes::MessageProperties& properties,
         const char* topic, const uint8_t* payload, size_t len, size_t index, size_t total)

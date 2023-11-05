@@ -242,6 +242,7 @@ void PylontechCanReceiver::loop()
             _stats->_chargeEnabled = this->getBit(chargeStatusBits, 7);
             _stats->_dischargeEnabled = this->getBit(chargeStatusBits, 6);
             _stats->_chargeImmediately = this->getBit(chargeStatusBits, 5);
+            _stats->_fullChargeRequested = _stats->_chargeImmediately;
 
             if (_verboseLogging) {
                 MessageOutput.printf("[Pylontech] chargeStatusBits: %d %d %d\n",

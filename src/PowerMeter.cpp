@@ -147,7 +147,8 @@ void PowerMeterClass::loop()
 
     readPowerMeter();
 
-    MessageOutput.printf("PowerMeterClass: TotalPower: %5.2f\r\n", getPowerTotal());
+    if (_verboseLogging)
+        MessageOutput.printf("PowerMeter: Grid Power: %5.2f\r\n", getPowerTotal());
 
     mqtt();
 

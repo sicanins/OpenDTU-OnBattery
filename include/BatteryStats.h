@@ -16,6 +16,7 @@ class BatteryStats {
         // the last time *any* datum was updated
         uint32_t getAgeSeconds() const { return (millis() - _lastUpdate) / 1000; }
         float getAgePowerMilliSeconds() const { return (millis() - _lastUpdatePower) ; }
+        float getLastUpdatePower() const { return _lastUpdatePower; }
         bool updateAvailable(uint32_t since) const { return _lastUpdate > since; }
 
         uint8_t getSoC() const { return _SoC; }
@@ -29,6 +30,8 @@ class BatteryStats {
         virtual void mqttPublish() const;
 
         bool isValid() const { return _lastUpdateSoC > 0 && _lastUpdate > 0; }
+
+        bool fullChargeRequested() const { return _fullChargeRequested; }
 
     protected:
         template<typename T>
@@ -47,6 +50,7 @@ class BatteryStats {
         uint32_t _lastUpdate = 0;
         uint32_t _lastUpdatePower = 0;
         int32_t _Power = 0;
+        bool _fullChargeRequested = false;
 };
 
 class PylontechBatteryStats : public BatteryStats {

@@ -169,6 +169,8 @@ struct CONFIG_T {
     uint32_t PowerLimiter_FullSolarPassThroughSoc;
     float PowerLimiter_FullSolarPassThroughStartVoltage;
     float PowerLimiter_FullSolarPassThroughStopVoltage;
+    float PowerLimiter_IntegratorLimit;
+    float PowerLimiter_IntegratorGain;
 
     bool Battery_Enabled;
     bool Battery_VerboseLogging;

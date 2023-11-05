@@ -180,6 +180,8 @@ bool ConfigurationClass::write()
     powerlimiter["full_solar_passthrough_soc"] = config.PowerLimiter_FullSolarPassThroughSoc;
     powerlimiter["full_solar_passthrough_start_voltage"] = config.PowerLimiter_FullSolarPassThroughStartVoltage;
     powerlimiter["full_solar_passthrough_stop_voltage"] = config.PowerLimiter_FullSolarPassThroughStopVoltage;
+    powerlimiter["integrator_gain"] = config.PowerLimiter_IntegratorGain;
+    powerlimiter["integrator_limit"] = config.PowerLimiter_IntegratorLimit;
 
     JsonObject battery = doc.createNestedObject("battery");
     battery["enabled"] = config.Battery_Enabled;
@@ -405,6 +407,9 @@ bool ConfigurationClass::read()
     config.PowerLimiter_FullSolarPassThroughSoc = powerlimiter["full_solar_passthrough_soc"] | POWERLIMITER_FULL_SOLAR_PASSTHROUGH_SOC;
     config.PowerLimiter_FullSolarPassThroughStartVoltage = powerlimiter["full_solar_passthrough_start_voltage"] | POWERLIMITER_FULL_SOLAR_PASSTHROUGH_START_VOLTAGE;
     config.PowerLimiter_FullSolarPassThroughStopVoltage = powerlimiter["full_solar_passthrough_stop_voltage"] | POWERLIMITER_FULL_SOLAR_PASSTHROUGH_STOP_VOLTAGE;
+    config.PowerLimiter_IntegratorLimit = powerlimiter["integrator_limit"] | POWERLIMITER_INTEGRATOR_LIMIT;
+    config.PowerLimiter_IntegratorGain = powerlimiter["integrator_gain"] | POWERLIMITER_INTEGRATOR_GAIN;
+
 
     JsonObject battery = doc["battery"];
     config.Battery_Enabled = battery["enabled"] | BATTERY_ENABLED;

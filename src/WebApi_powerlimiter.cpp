@@ -58,6 +58,8 @@ void WebApiPowerLimiterClass::onStatus(AsyncWebServerRequest* request)
     root[F("full_solar_passthrough_soc")] = config.PowerLimiter_FullSolarPassThroughSoc;
     root[F("full_solar_passthrough_start_voltage")] = static_cast<int>(config.PowerLimiter_FullSolarPassThroughStartVoltage * 100 + 0.5) / 100.0;
     root[F("full_solar_passthrough_stop_voltage")] = static_cast<int>(config.PowerLimiter_FullSolarPassThroughStopVoltage * 100 + 0.5) / 100.0;
+    root[F("integrator_limit")] = config.PowerLimiter_IntegratorLimit;
+    root[F("integrator_gain")] = config.PowerLimiter_IntegratorGain;
 
     response->setLength();
     request->send(response);
@@ -148,6 +150,9 @@ void WebApiPowerLimiterClass::onAdminPost(AsyncWebServerRequest* request)
     config.PowerLimiter_FullSolarPassThroughSoc = root[F("full_solar_passthrough_soc")].as<uint32_t>();
     config.PowerLimiter_FullSolarPassThroughStartVoltage = static_cast<int>(root[F("full_solar_passthrough_start_voltage")].as<float>() * 100) / 100.0;
     config.PowerLimiter_FullSolarPassThroughStopVoltage = static_cast<int>(root[F("full_solar_passthrough_stop_voltage")].as<float>() * 100) / 100.0;
+    config.PowerLimiter_IntegratorLimit = root[F("integrator_limit")].as<float>();
+    config.PowerLimiter_IntegratorGain = root[F("integrator_gain")].as<float>();
+
 
 
 

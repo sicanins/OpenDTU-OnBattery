@@ -44,6 +44,9 @@ public:
         UnconditionalSolarPassthrough,
         NoVeDirect,
         Settling,
+        WaitingVictron,
+        WaitingBattery,
+        WaitingBackoff,
         Stable,
     };
 

@@ -590,7 +590,10 @@
         "InverterRestart": "Wechselrichter Neustart",
         "InverterRestartHour": "Stunde für Neustart",
         "InverterRestartHint": "Neustart des Wechselrichter einmal täglich um die \"Tagesertrag\" Werte wieder auf Null zu setzen.",
-        "Save": "@:dtuadmin.Save"
+        "Save": "@:dtuadmin.Save",
+        "Integrator": "Der Integrator hilft Fehler im System langsam auszugleichen.",
+        "IntegratorGain": "Integrator Gain",
+        "IntegratorLimit": "Integrator Limit"
     },
     "batteryadmin": {
         "BatterySettings": "Batterie Einstellungen",

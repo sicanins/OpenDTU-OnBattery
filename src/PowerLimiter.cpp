@@ -10,6 +10,7 @@
 #include "MqttSettings.h"
 #include "NetworkSettings.h"
 #include "Huawei_can.h"
+#include "MqttHandlePowerLimiter.h"
 #include <VeDirectMpptController.h>
 #include "MessageOutput.h"
 #include <ctime>
@@ -43,6 +44,9 @@ std::string const& PowerLimiterClass::getStatusText(PowerLimiterClass::Status st
         { Status::UnconditionalSolarPassthrough, "unconditionally passing through all solar power (MQTT override)" },
         { Status::NoVeDirect, "VE.Direct disabled, connection broken, or data outdated" },
         { Status::Settling, "waiting for the system to settle" },
+        { Status::WaitingVictron, "waiting for the Victron MPPT to update values" },
+        { Status::WaitingBattery, "waiting for the Battery to update values" },
+        { Status::WaitingBackoff, "waiting for waiting time to expire" },
         { Status::Stable, "the system is stable, the last power limit is still valid" },
     };
 
@@ -219,32 +223,64 @@ void PowerLimiterClass::loop()
 
     // concerns both power limits and start/stop/restart commands and is
     // only updated if a respective response was received from the inverter
-    auto lastUpdateCmd = std::max(
+    uint32_t lastUpdateCmd = std::max(
             _inverter->SystemConfigPara()->getLastUpdateCommand(),
             _inverter->PowerCommand()->getLastUpdateCommand());
 
     // wait for power meter and inverter stat updates after a settling phase; 3s because this is the time 
     // required to get proper updates from victron mppts and pylontech battery
-    auto settlingEnd = lastUpdateCmd + 3 * 1000;
-
-    if (millis() < settlingEnd ) { return announceStatus(Status::Settling); }
+    uint32_t settlingEnd = lastUpdateCmd + 500;
 
     // the fast limiter does not rely on the status update of the hoymiles, therefore we dont need to wait
     if (!useFastPowerLimiter)
     {
+        // settling of 3 seconds is needed if the fast power limiter is not used
+        settlingEnd = lastUpdateCmd + 3 * 1000;
+
+        // need to wait after the commands are transferred to the inverter
+        if (millis() < settlingEnd ) {
+            return announceStatus(Status::Settling); 
+        }
+
+        // need to be sure to receive an update from the intverter after the settling period
         if (_inverter->Statistics()->getLastUpdate() <= settlingEnd) {
             return announceStatus(Status::InverterStatsPending);
         }
     }
 
-    if (PowerMeter.getLastPowerMeterUpdate() <= settlingEnd) {
-        return announceStatus(Status::PowerMeterPending);
-    }    
+    // the fast power limiter relies on the victron power readings, therefore they must be taken after the settling period
+    if (useFastPowerLimiter && config.Vedirect_Enabled)
+    {
+        // make sure, that the Victron MPPTs delivered power values after the settling time    
+        for (int8_t i = 0; i < VICTRON_COUNT; i++)
+        {
+            if (VeDirectMppt[i].isInit())
+            {
+                if (!VeDirectMppt[i].isDataValid() || !(VeDirectMppt[i].getLastUpdate() > settlingEnd))
+                {
+                    return announceStatus(Status::WaitingVictron); 
+                }
+            }
+        }
+    }
 
+    // the fast power limiter also relies on the pylontech power reading, therefore make sure its updated before making a new decision
+    if (useFastPowerLimiter && config.Battery_Enabled && Battery.getStats()->isValid() && ((Battery.getStats())->getLastUpdatePower() < settlingEnd))
+    {
+        return announceStatus(Status::WaitingBattery); 
+    }
+
+    // make sure that the calculation runs at the interval "_calculationBackoffMs"
     // since _lastCalculation and _calculationBackoffMs are initialized to
     // zero, this test is passed the first time the condition is checked.
     if (millis() < (_lastCalculation + _calculationBackoffMs)) {
-        return announceStatus(Status::Stable);
+        return announceStatus(Status::WaitingBackoff);
+    }    
+
+    // if the power meter value is too old, query it now again!
+    if (PowerMeter.getLastPowerMeterUpdate() < settlingEnd ) {
+
+        PowerMeter.loop();
     }    
 
     if (_verboseLogging) {
@@ -303,6 +339,10 @@ void PowerLimiterClass::loop()
       }
     }
 
+    // make sure to fully charge if the Pylontech/Battery requests it
+    if (config.Battery_Enabled && Battery.getStats()->isValid() && (Battery.getStats()->fullChargeRequested()))
+        _batteryDischargeEnabled = false;       
+
     if (_verboseLogging) {
         MessageOutput.printf("[DPL::loop] battery interface %s, SoC: %d %%, StartTH: %d %%, StopTH: %d %%, SoC age: %d s\r\n",
                 (config.Battery_Enabled?"enabled":"disabled"),
@@ -337,8 +377,8 @@ void PowerLimiterClass::loop()
     bool limitUpdated = setNewPowerLimit(_inverter, newPowerLimit);
 
     if (_verboseLogging) {
-        MessageOutput.printf("[DPL::loop] ******************* Leaving PL, calculated limit: %d W, requested limit: %d W, integrator: %d W (%s)\r\n",
-                newPowerLimit, _lastRequestedPowerLimit, _integrator,
+        MessageOutput.printf("[DPL::loop] ******************* Leaving PL, calculated limit: %d W, requested limit: %d W, integrator: %d W / %d W / %d %% (%s)\r\n",
+                newPowerLimit, _lastRequestedPowerLimit, _integrator, (int)config.PowerLimiter_IntegratorLimit, (int)config.PowerLimiter_IntegratorGain,
                 (limitUpdated?"updated from calculated":"kept last requested"));
     }
 
@@ -535,12 +575,15 @@ int32_t PowerLimiterClass::calcPowerLimit(std::shared_ptr<InverterAbstract> inve
     if (useFastPowerLimiter)
     {
         int32_t diff = powerMeterValue - config.PowerLimiter_TargetPowerConsumption;
-        int32_t integrator_max = config.PowerLimiter_UpperPowerLimit / 10;
-        int32_t gain = 2;
-        if (diff < -5 && _integrator > integrator_max*-1)
-                _integrator -= gain;
-        else if (diff > 5 && _integrator < integrator_max)
-                _integrator += gain;     
+
+        if (diff < -1*config.PowerLimiter_TargetPowerConsumptionHysteresis || diff > config.PowerLimiter_TargetPowerConsumptionHysteresis)
+            _integrator += (float)(config.PowerLimiter_IntegratorGain*diff)/100.0;            
+
+        if (_integrator > config.PowerLimiter_IntegratorLimit)
+            _integrator = config.PowerLimiter_IntegratorLimit;
+        if (_integrator < -1*config.PowerLimiter_IntegratorLimit)
+            _integrator = -1*config.PowerLimiter_IntegratorLimit;    
+
         newPowerLimit += _integrator;
 
         if (newPowerLimit < config.PowerLimiter_LowerPowerLimit)
@@ -600,6 +643,12 @@ void PowerLimiterClass::commitPowerLimit(std::shared_ptr<InverterAbstract> inver
     if (enablePowerProduction && !inverter->isProducing()) {
         MessageOutput.println("[DPL::commitPowerLimit] Starting up inverter...");
         inverter->sendPowerControlRequest(true);
+    }
+
+    // in order to debug the curves, this is published to the mqtt broker
+    if (_verboseLogging)
+    {
+        MqttHandlePowerLimiter.publishPowerLimitDebug(enablePowerProduction ? limit : 0, _integrator);
     }
 }
 

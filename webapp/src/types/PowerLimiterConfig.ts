@@ -20,4 +20,6 @@ export interface PowerLimiterConfig {
     full_solar_passthrough_soc: number;
     full_solar_passthrough_start_voltage: number;
     full_solar_passthrough_stop_voltage: number;
+    integrator_gain: number;
+    integrator_limit: number;
 }

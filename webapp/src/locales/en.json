@@ -599,7 +599,10 @@
         "InverterRestart": "Inverter Restart",
         "InverterRestartHour": "Restart Hour",
         "InverterRestartHint": "Restart the Inverter once a day to reset the \"YieldDay\" values.",
-        "Save": "@:dtuadmin.Save"
+        "Save": "@:dtuadmin.Save",
+        "Integrator": "The Integrator helps to eliminate errors in the system.",
+        "IntegratorGain": "Integrator Gain",
+        "IntegratorLimit": "Integrator Limit"
     },
     "batteryadmin": {
         "BatterySettings": "Battery Settings",
