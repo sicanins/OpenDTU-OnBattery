@@ -80,7 +80,7 @@ private:
     uint32_t _nextCalculateCheck = 5000; // time in millis for next NTP check to calulate restart
     bool _fullSolarPassThroughEnabled = false;
     bool _verboseLogging = true;
-    int32_t _integrator = 0;
+    float _integrator = 0;
 
     std::string const& getStatusText(Status status);
     void announceStatus(Status status);
@@ -100,6 +100,7 @@ private:
     bool isStopThresholdReached();
     bool isBelowStopThreshold();
     bool useFullSolarPassthrough();
+    uint32_t _currentPowerLimit = 0;
 };
 
 extern PowerLimiterClass PowerLimiter;

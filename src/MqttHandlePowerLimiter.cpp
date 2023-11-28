@@ -44,17 +44,43 @@ void MqttHandlePowerLimiterClass::loop()
     }
 }
 
-void MqttHandlePowerLimiterClass::publishPowerLimitDebug(float requestedPowerLimit, int32_t integrator)
+void MqttHandlePowerLimiterClass::publishPowerLimitDebug(float requestedPowerLimit)
 {
     {
     auto val = static_cast<unsigned>(requestedPowerLimit);
     MqttSettings.publish("powerlimiter/debug/power_limit_request", String(val));
     }
+}
 
+void MqttHandlePowerLimiterClass::publishIntegratorDebug(int32_t integrator)
+{
     {
     auto val = static_cast<signed>(integrator);
     MqttSettings.publish("powerlimiter/debug/integrator", String(val));
     }
+}
+
+void MqttHandlePowerLimiterClass::publishAcPowerDebug(int real, int calc)
+{
+    {
+    auto val = static_cast<unsigned>(real);
+    MqttSettings.publish("powerlimiter/debug/known_ac_power", String(val));
+    }
+    {
+    auto val = static_cast<unsigned>(calc);
+    MqttSettings.publish("powerlimiter/debug/calculated_ac_power", String(val));
+    }
+}
+
+void MqttHandlePowerLimiterClass::publishGridPowerDebug(float grid, float curr)
+{
+    String value;
+    value = grid;    
+    
+    MqttSettings.publish("powerlimiter/debug/grid_power", value);
+
+    value = curr;    
+    MqttSettings.publish("powerlimiter/debug/grid_power_curr", value);
 }
 
 void MqttHandlePowerLimiterClass::onCmdMode(const espMqttClientTypes::MessageProperties& properties,

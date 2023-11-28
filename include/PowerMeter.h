@@ -61,6 +61,8 @@ private:
     float _powerMeterImport = 0.0;
     float _powerMeterExport = 0.0;
 
+    float _powerCurr = 0.0;
+
     std::map<String, float*> _mqttSubscriptions;
 
     void readPowerMeter();

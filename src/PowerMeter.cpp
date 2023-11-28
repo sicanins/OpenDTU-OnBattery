@@ -8,6 +8,7 @@
 #include "MqttSettings.h"
 #include "NetworkSettings.h"
 #include "SDM.h"
+#include "MqttHandlePowerLimiter.h"
 #include "MessageOutput.h"
 #include <ctime>
 #include <SoftwareSerial.h>
@@ -148,7 +149,7 @@ void PowerMeterClass::loop()
     readPowerMeter();
 
     if (_verboseLogging)
-        MessageOutput.printf("PowerMeter: Grid Power: %5.2f\r\n", getPowerTotal());
+        MessageOutput.printf("PowerMeter: Grid Power: %5.2f / %5.2f\r\n", getPowerTotal(), _powerCurr);
 
     mqtt();
 
@@ -188,7 +189,15 @@ void PowerMeterClass::readPowerMeter()
             _powerMeter1Power = HttpPowerMeter.getPower(1);
             _powerMeter2Power = HttpPowerMeter.getPower(2);
             _powerMeter3Power = HttpPowerMeter.getPower(3);
+
+            _powerCurr = HttpPowerMeter.getCurrPower();
+
             _lastPowerMeterUpdate = millis();
+
+            if (_verboseLogging)
+            {
+                MqttHandlePowerLimiter.publishGridPowerDebug(_powerMeter1Power, _powerCurr);
+            }
         }
     }
 }
