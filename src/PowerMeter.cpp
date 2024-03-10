@@ -150,7 +150,7 @@ void PowerMeterClass::loop()
     readPowerMeter();
 
     if (_verboseLogging)
-        MessageOutput.printf("PowerMeter: Grid Power: %5.2f\r\n", getPowerTotal());
+        MessageOutput.printf("PowerMeter: Grid Power: %5.2f / %5.2f\r\n", getPowerTotal(), _powerCurr);
 
     mqtt();
 
@@ -219,6 +219,11 @@ void PowerMeterClass::readPowerMeter()
             }
 
             _lastPowerMeterUpdate = millis();
+
+            if (_verboseLogging)
+            {
+                //MqttHandlePowerLimiter.publishGridPowerDebug(_powerMeter1Power, _powerCurr);
+            }
         }
     }
 }

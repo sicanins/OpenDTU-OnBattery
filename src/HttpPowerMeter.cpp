@@ -18,6 +18,11 @@ float HttpPowerMeterClass::getPower(int8_t phase)
     return power[phase - 1];
 }
 
+float HttpPowerMeterClass::getCurrPower()
+{
+    return power_curr;
+}
+
 bool HttpPowerMeterClass::updateValues()
 {
     const CONFIG_T& config = Configuration.get();
@@ -40,13 +45,15 @@ bool HttpPowerMeterClass::updateValues()
                       MessageOutput.printf("[HttpPowerMeter] Couldn't find a value with Json query \"%s\"\r\n", phaseConfig.JsonPath);
                       return false;
                   }
+
+                  getFloatValueByJsonPath(response, "/curr", power_curr);
             } else {
                 MessageOutput.printf("[HttpPowerMeter] Getting the power of phase %d failed. Error: %s\r\n",
                     i + 1, errorMessage);
                 return false;
             }
         }
-    }
+    }    
 
     return true;
 }

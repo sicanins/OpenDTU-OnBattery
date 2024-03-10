@@ -118,8 +118,19 @@ void PowerLimiterClass::loop()
     bool useFastPowerLimiter = _mode == Mode::Normal;
     // if (!config.Battery_Enabled || !Battery.getStats()->isValid() || !(Battery.getStats()->getAgePowerMilliSeconds() < 60 * 1000))
     //     useFastPowerLimiter = false;
+    // if (!config.Battery_Enabled || !Battery.getStats()->isValid() || !(Battery.getStats()->getAgePowerMilliSeconds() < 60 * 1000))
+    //     useFastPowerLimiter = false;
 
     // check if the fast power limiter can be used: victron mppts must be installed and working
+    // for (int8_t i = 0; i < VICTRON_COUNT; i++)
+    //{
+    //    if (VeDirectMppt[i].isInit())
+    //    {
+    //        if (!config.Vedirect_Enabled || !VeDirectMppt[i].isDataValid() || !((millis() - VeDirectMppt[i].getLastUpdate() ) < 60 * 1000))
+    //            useFastPowerLimiter = false;
+    //    }
+    //}
+
     // for (int8_t i = 0; i < VICTRON_COUNT; i++)
     //{
     //    if (VeDirectMppt[i].isInit())
@@ -268,6 +279,11 @@ void PowerLimiterClass::loop()
     // {
     //     return announceStatus(Status::WaitingBattery);
     // }
+    // // the fast power limiter also relies on the pylontech power reading, therefore make sure its updated before making a new decision
+    // if (useFastPowerLimiter && config.Battery_Enabled && Battery.getStats()->isValid() && ((Battery.getStats())->getLastUpdatePower() < settlingEnd))
+    // {
+    //     return announceStatus(Status::WaitingBattery);
+    // }
 
     // make sure that the calculation runs at the interval "_calculationBackoffMs"
     // since _lastCalculation and _calculationBackoffMs are initialized to
@@ -376,7 +392,7 @@ void PowerLimiterClass::loop()
     bool limitUpdated = setNewPowerLimit(_inverter, newPowerLimit);
 
     if (_verboseLogging) {
-        MessageOutput.printf("[DPL::loop] ******************* Leaving PL, calculated limit: %d W, requested limit: %d W, integrator: %d W / %d W / %d %% (%s)\r\n",
+        MessageOutput.printf("[DPL::loop] ******************* Leaving PL, calculated limit: %d W, requested limit: %d W, integrator: %1.2f W / %d W / %d %% (%s)\r\n",
                 newPowerLimit, _lastRequestedPowerLimit, _integrator, (int)config.PowerLimiter_IntegratorLimit, (int)config.PowerLimiter_IntegratorGain,
                 (limitUpdated?"updated from calculated":"kept last requested"));
     }
@@ -548,10 +564,17 @@ int32_t PowerLimiterClass::calcPowerLimit(std::shared_ptr<InverterAbstract> inve
 
             // int32_t P_battery = Battery.getStats()->getPower() * -1;
             // float_t P = P_battery + P_victron;
+            // int32_t P_battery = Battery.getStats()->getPower() * -1;
+            // float_t P = P_battery + P_victron;
 
             // // apply the 95% default efficiency of the Hoymiles --> this is the AC power of the Hoymiles
             // P = 0.95 * P;
+            // // apply the 95% default efficiency of the Hoymiles --> this is the AC power of the Hoymiles
+            // P = 0.95 * P;
 
+            // acPower = P;
+
+            acPower = _currentPowerLimit;
             // acPower = P;
 
             acPower = _currentPowerLimit;
@@ -602,6 +625,10 @@ int32_t PowerLimiterClass::calcPowerLimit(std::shared_ptr<InverterAbstract> inve
 
         if (newPowerLimit < config.PowerLimiter_LowerPowerLimit)
             newPowerLimit = config.PowerLimiter_LowerPowerLimit;
+
+        if (changed && _verboseLogging) {
+            MqttHandlePowerLimiter.publishIntegratorDebug(_integrator);
+        }
 
         if (changed && _verboseLogging) {
             MqttHandlePowerLimiter.publishIntegratorDebug(_integrator);
@@ -667,6 +694,8 @@ void PowerLimiterClass::commitPowerLimit(std::shared_ptr<InverterAbstract> inver
     if (_verboseLogging) {
         MqttHandlePowerLimiter.publishPowerLimitDebug(enablePowerProduction ? limit : 0);
     }
+
+    _currentPowerLimit = enablePowerProduction ? limit : 0;
 
     _currentPowerLimit = enablePowerProduction ? limit : 0;
 }
