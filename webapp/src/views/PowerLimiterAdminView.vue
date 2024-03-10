@@ -272,7 +272,7 @@
                     <label for="integrator_gain" class="col-sm-2 col-form-label">{{ $t('powerlimiteradmin.IntegratorGain') }}:</label>
                     <div class="col-sm-10">
                         <div class="input-group">
-                            <input type="number" step="1" class="form-control" id="integrator_gain"
+                            <input type="number" step="0.1" class="form-control" id="integrator_gain"
                                 placeholder="1" v-model="powerLimiterConfigList.integrator_gain"
                                 aria-describedby="integratorGainDescription" min="0" max="50.0" required/>
                                 <span class="input-group-text" id="integratorGainDescription">%</span>

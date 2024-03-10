@@ -5,12 +5,12 @@
 #include "PowerMeter.h"
 #include "Configuration.h"
 #include "HttpPowerMeter.h"
+#include "MessageOutput.h"
 #include "MqttSettings.h"
 #include "NetworkSettings.h"
 #include "SDM.h"
-#include "MessageOutput.h"
-#include <ctime>
 #include <SoftwareSerial.h>
+#include <ctime>
 
 PowerMeterClass PowerMeter;
 
@@ -103,7 +103,9 @@ float PowerMeterClass::getPowerTotal(bool forceUpdate)
             readPowerMeter();
         }
     }
-    return _powerMeter1Power + _powerMeter2Power + _powerMeter3Power;
+
+    return _totalPower;
+    // return _powerMeter1Power + _powerMeter2Power + _powerMeter3Power;
 }
 
 uint32_t PowerMeterClass::getLastPowerMeterUpdate()
@@ -188,6 +190,34 @@ void PowerMeterClass::readPowerMeter()
             _powerMeter1Power = HttpPowerMeter.getPower(1);
             _powerMeter2Power = HttpPowerMeter.getPower(2);
             _powerMeter3Power = HttpPowerMeter.getPower(3);
+
+            float total = _powerMeter1Power;
+            total += _powerMeter2Power;
+            total += _powerMeter3Power;
+
+            float filter_threshold = 50;
+            uint32_t filter_jump_delay = 2;
+            uint32_t filter_length = 3;
+
+            if ((total > _totalPower + filter_threshold) || (total > _totalPower + filter_threshold)) {
+                _filter_jump_count++;
+                if (_filter_jump_count >= filter_jump_delay) {
+                    _filter_sum = filter_length * total;
+                    _filter_jump_count = 0;
+                    _totalPower = total;
+                }
+            } else {
+                _filter_jump_count = 0;
+
+                _filter_sum += total - _totalPower;
+
+                if (_filter_sum != 0) {
+                    _totalPower = _filter_sum / filter_length;
+                } else {
+                    _totalPower = 0;
+                }
+            }
+
             _lastPowerMeterUpdate = millis();
         }
     }

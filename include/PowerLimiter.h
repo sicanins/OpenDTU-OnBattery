@@ -100,6 +100,7 @@ private:
     bool isStopThresholdReached();
     bool isBelowStopThreshold();
     bool useFullSolarPassthrough();
+    uint32_t _currentPowerLimit = 0;
 };
 
 extern PowerLimiterClass PowerLimiter;

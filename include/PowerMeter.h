@@ -60,6 +60,10 @@ private:
     float _powerMeter3Voltage = 0.0;
     float _powerMeterImport = 0.0;
     float _powerMeterExport = 0.0;
+    float _totalPower = 0.0;
+
+    float _filter_sum = 0.0;
+    uint32_t _filter_jump_count = 0;
 
     std::map<String, float*> _mqttSubscriptions;
 
